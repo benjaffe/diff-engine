@@ -1,27 +1,33 @@
 'use strict';
-(function(){
-	var diffEngine = {};
-	var contentArr = [];
 
-	diffEngine.getEncoder = function() {
-		var encoder = {
-			push: function(content) {
-				contentArr.push(content);
-			}
-		};
+window.diffEngine = (function(){
 
-		return encoder;
+	var _contentArr = [];
+	var _prevContent = '';
+
+	var encoder = {
+		push: function(content) {
+			_contentArr.push(content);
+		}
 	};
 
-	diffEngine.getDecoder = function() {
-		var decoder = {
-			getContent: function() {
-				return contentArr[ contentArr.length-1 ];
-			}
-		};
+	var decoder = {
+		getContent: function() {
+			return _contentArr[ _contentArr.length-1 ];
+		}
+	};
 
+	function getEncoder() {
+		return encoder;
+	}
+
+	function getDecoder() {
 		return decoder;
 	}
 
-	window.diffEngine = diffEngine;
+	return {
+		getEncoder: getEncoder,
+		getDecoder: getDecoder
+	};
+
 })();
