@@ -99,9 +99,10 @@ gulp.task('test', function () {
     notify: false,
     port: 9000,
     server: {
-      baseDir: ['test'],
+      baseDir: ['test', '.tmp'],
       routes: {
-        '/scripts': 'app/scripts'
+        '/scripts': 'app/scripts',
+        '/lib': 'app/lib'
       }
     }
   });
