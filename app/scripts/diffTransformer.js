@@ -5,7 +5,7 @@ var app = app || {};
 app.diffEngine = (function() {
 
   var _diffArr = [];
-  var _prevContent;
+  var _prevStateStr = JSON.stringify({});
   var _prevDate;
 
   var _history = [];
@@ -13,12 +13,12 @@ app.diffEngine = (function() {
   var _diffAndHistoryOutOfSync = true;
 
   var encoder = {
-  	/**
-  	 * Calculates the diff from the content and adds it to the diff list
-  	 * @param  {string} content - the content to be diffed
-  	 */
-    push: function(content) {
-      var diff = _generateDiff(content);
+    /**
+    	 * Calculates the diff from the content and adds it to the diff list
+    	 * @param  {string} content - the content to be diffed
+    	 */
+    push: function(state) {
+      var diff = _generateDiff(state);
       _diffArr.push(diff);
       _diffAndHistoryOutOfSync = true;
     }
@@ -37,7 +37,7 @@ app.diffEngine = (function() {
 		 * Return the final state of the content
 		 * @return {object}  The state object after the diffs are decoded into content
 		 */
-    getContent: function() {
+    getState: function() {
       return _decodeContent();
     },
 		
@@ -46,7 +46,7 @@ app.diffEngine = (function() {
 		 * @param  {integer} num - the number of the diff to be decoded
 		 * @return {string}        the decoded content
 		 */
-    getContentAtIndex: function(num) {
+    getStateAtIndex: function(num) {
       if (num > _diffArr.length - 1) {
         return null;
       }
@@ -59,7 +59,7 @@ app.diffEngine = (function() {
 		 * @param  {integer} time - ms from start to be decoded
 		 * @return {string}        the decoded content
 		 */
-    getContentAtTime: function(time) {
+    getStateAtTime: function(time) {
 
     },
 
@@ -67,7 +67,7 @@ app.diffEngine = (function() {
      * Get a timeline of decoded content
      * @return {array} timeline of decoded content
      */
-    getContentTimeline: function() {
+    getStateTimeline: function() {
       if (_diffArr.length !== _history.length) {
         _decodeContent();
       }
@@ -75,34 +75,37 @@ app.diffEngine = (function() {
     }
   };
 
-  function _generateDiff (content) {
+  /** Converts a state object into a diff object */
+  function _generateDiff (_state) {
     var _diff = {};
     var _now = Date.now();
-
-    if (!_prevContent) {
+    
+    var _stateStr = JSON.stringify(_state);
+    
+    if (_prevStateStr === '{}') {
+      console.log('FIRST');
       _diff.timeAbsolute = _now;
     } else {
       _diff.timeRelative = _now - _prevDate;
     }
 
-    if (content) {
-      _diff.content = app.JsDiff.diffChars(_prevContent, content);
+    if (_stateStr) {
+      _diff.diffOps = app.JsDiff.diffChars(_prevStateStr, _stateStr);
     }
 
-    _prevContent = content;
+    _prevStateStr = _stateStr;
     _prevDate = _now;
+
+    console.log(_diff);
 			
     return _diff;
   }
 
-  // TODO: decodes based on the diff index
-  // this is temporary for initial testing purposes
-	
   /**
-  	 * [_decodeContent description]
-  	 * @param  {[type]} _num [description]
-  	 * @return {[type]}      [description]
-  	 */
+	 * reconstruct a state timeline based on the diffs, and return a content object
+	 * @param  {[type]} _num [description]
+	 * @return {[type]}      [description]
+	 */
   function _decodeContent (_num) {
 		
     if (_num === undefined) {
@@ -113,44 +116,47 @@ app.diffEngine = (function() {
       return _history[_num];
     }
 
-    // reset history, calculate everything from scratch
+    // reset stateHistory, calculate everything from scratch
     _history = [];
 
     console.log('decoding');
 		
     // go through the diff array
-    _diffArr.forEach(function(diff, diffNum) {
+    _diffArr.forEach(function(_diff, _diffNum) {
       var timestampAbs, timestamp;
 
       // our virtual cursor
       var i = 0;
 
       // last string value or ''
-      var str = _history[diffNum - 1] && _history[diffNum - 1].content || '';
+      var stateStr = _history[_diffNum - 1] && JSON.stringify(_history[_diffNum - 1].state) || '{}';
+      console.log(_diffNum, _history[_diffNum - 1] && _history[_diffNum - 1].state);
 
       // run through each diff and calculate contents
-      diff.content.forEach(function(diffOp) {
+      _diff.diffOps.forEach(function(diffOp) {
         if (diffOp.added) {
-          str = str.substr(0, i) + diffOp.value + str.slice(i);
+          console.debug('ADDED ' + diffOp.value);
+          stateStr = stateStr.substr(0, i) + diffOp.value + stateStr.slice(i);
           i += diffOp.value.length;
         } else if (diffOp.removed) {
-          str = str.substr(0, i) + str.slice(i + diffOp.count);
+          console.debug('REMOVED ' + diffOp.count);
+          stateStr = stateStr.substr(0, i) + stateStr.slice(i + diffOp.count);
         } else {
           i += diffOp.count;
         }
       });
 
       // set the timestamps
-      if (diff.timeAbsolute) {
-        timestampAbs = diff.timeAbsolute;
+      if (_diff.timeAbsolute) {
+        timestampAbs = _diff.timeAbsolute;
         timestamp = 0;
       } else {
-        timestampAbs = _history[diffNum - 1].timestampAbs + diff.timeRelative;
-        timestamp = _history[diffNum - 1].timestamp + diff.timeRelative;
+        timestampAbs = _history[_diffNum - 1].timestampAbs + _diff.timeRelative;
+        timestamp = _history[_diffNum - 1].timestamp + _diff.timeRelative;
       }
 
       _history.push({
-        content: str,
+        state: JSON.parse(stateStr),
         timestamp: timestamp,
         timestampAbs: timestampAbs,
         index: _history.length
@@ -158,7 +164,7 @@ app.diffEngine = (function() {
     });
 		
     _diffAndHistoryOutOfSync = false;
-
+    console.log(_history[_num]);
     return _history[_num];
   }
 
