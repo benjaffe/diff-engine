@@ -15,14 +15,10 @@
 			var contentDecoder = app.diffEngine.getDecoder();
 			var str = '<TextView\n    android:text=\"Hi there!\"\n    android:padding=\"20dp\"/>';
 
-			afterEach(function(done){
-				done();
-			});
-
 			it('for adding the initial string', function () {
 				var decodedContent;
 				contentEncoder.push(str);
-				decodedContent = contentDecoder.getContent()
+				decodedContent = contentDecoder.getContent().content;
 				decodedContent.should.equal(str);
 			});
 
@@ -30,7 +26,7 @@
 				str = str + ' ... that\'s all folks';
 				var decodedContent;
 				contentEncoder.push(str);
-				decodedContent = contentDecoder.getContent()
+				decodedContent = contentDecoder.getContent().content;
 				decodedContent.should.equal(str);
 			});
 
@@ -38,7 +34,7 @@
 				str = str.splice(28, 0, 'Oh, here we are... ');
 				var decodedContent;
 				contentEncoder.push(str);
-				decodedContent = contentDecoder.getContent()
+				decodedContent = contentDecoder.getContent().content;
 				decodedContent.should.equal(str);
 			});
 
@@ -46,7 +42,7 @@
 				str = str.slice(0, -21);
 				var decodedContent;
 				contentEncoder.push(str);
-				decodedContent = contentDecoder.getContent()
+				decodedContent = contentDecoder.getContent().content;
 				decodedContent.should.equal(str);
 			});
 
@@ -54,7 +50,7 @@
 				str = str.splice(28, 19, '');
 				var decodedContent;
 				contentEncoder.push(str);
-				decodedContent = contentDecoder.getContent()
+				decodedContent = contentDecoder.getContent().content;
 				decodedContent.should.equal(str);
 			});
 

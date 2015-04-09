@@ -8,23 +8,53 @@ app.diffEngine = (function(){
 	var _prevContent;
 	var _prevDate;
 
+	var _history = [];
+	
+	var _diffAndHistoryOutOfSync = true;
+
 	var encoder = {
 		push: function(content) {
 			var diff = _generateDiff(content);
 			_diffArr.push(diff);
+			_diffAndHistoryOutOfSync = true;
 		}
 	};
 
 	var decoder = {
-		getContent: function() {
-			return _decodeContent(_diffArr, _diffArr.length - 1);
+		getDiffs: function() {
+			return _diffArr;
 		},
-		getContentAt: function(num) {
+
+		/**
+		 * Return the final state of the content
+		 * @return {[type]} [description]
+		 */
+		getContent: function() {
+			return _decodeContent();
+		},
+		
+		/**
+		 * Return the state of the content at dif # num
+		 * @param  {[type]} num [diff number]
+		 * @return {[type]}     [description]
+		 */
+		getContentAtIndex: function(num) {
 			if (num > _diffArr.length - 1) {
 				return null;
-			} else {
-				return _decodeContent(_diffArr, num);
 			}
+
+			return _decodeContent(num);
+		},
+
+		getContentAtTime: function(time) {
+
+		},
+
+		getContentTimeline: function() {
+			if (_diffArr.length !== _history.length) {
+				_decodeContent();
+			}
+			return _history;
 		}
 	};
 
@@ -50,21 +80,35 @@ app.diffEngine = (function(){
 
 	// TODO: decodes based on the diff index
 	// this is temporary for initial testing purposes
-	function _decodeContent (_arr, _num) {
-		var _history = [];
+	
+	/**
+	 * [_decodeContent description]
+	 * @param  {[type]} _num [description]
+	 * @return {[type]}      [description]
+	 */
+	function _decodeContent (_num) {
+		
+		if (_num === undefined) {
+			_num = _diffArr.length - 1;
+		}
+
+		if (_diffArr.length === _history.length && !_diffAndHistoryOutOfSync) {
+			return _history[_num];
+		}
+
+		// reset history, calculate everything from scratch
+		_history = [];
+
+		console.log('decoding');
+		
 		// go through the diff array
-		_arr.slice(0, _num+1).forEach(function(diff, diffNum){
+		_diffArr.forEach(function(diff, diffNum){
 			var i = 0; // our virtual cursor
 			var str = _history[diffNum - 1] && _history[diffNum - 1].content || ''; // last string value or ''
-			var timestamp;
+			var timestampAbs, timestamp;
 
-			if (diff.timeAbsolute) {
-				timestamp = diff.timeAbsolute;
-			} else {
-				timestamp = _history[diffNum - 1].timestamp + diff.timeRelative;
-			}
 
-			// run through each diff
+			// run through each diff and calculate contents
 			diff.content.forEach(function(diffOp){
 				if (diffOp.added) {
 					str = str.substr(0, i) + diffOp.value + str.slice(i /*-1+diffOp.value.length*/ );
@@ -80,14 +124,28 @@ app.diffEngine = (function(){
 				}
 			});
 
+
+			// set the timestamps
+			if (diff.timeAbsolute) {
+				timestampAbs = diff.timeAbsolute;
+				timestamp = 0;
+			} else {
+				timestampAbs = _history[diffNum - 1].timestampAbs + diff.timeRelative;
+				timestamp = _history[diffNum - 1].timestamp + diff.timeRelative;
+			}
+
+
 			_history.push({
 				content: str,
-				timestamp: timestamp
+				timestamp: timestamp,
+				timestampAbs: timestampAbs,
+				index: _history.length
 			});
 		});
 		
+		_diffAndHistoryOutOfSync = false;
 
-		return _history[_num].content;
+		return _history[_num];
 	}
 
 	function getEncoder() {
