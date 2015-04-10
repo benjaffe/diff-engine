@@ -38,8 +38,12 @@ app.diffEngine = (function() {
 		 * Return the state after ALL diffs
 		 * @return {object}  The state object after the diffs are decoded
 		 */
-    getState: function() {
-      return _decodeState();
+    getState: function(time) {
+      if (time === undefined) {
+        return _decodeState();
+      } else {
+        return this._getStateAtTime(time);
+      }
     },
 		
     /**
@@ -60,8 +64,20 @@ app.diffEngine = (function() {
 		 * @param  {integer} time - ms from start to be decoded
 		 * @return {string}        the decoded state
 		 */
-    getStateAtTime: function(time) {
+    _getStateAtTime: function(time) {
+      // ensure we have a state history to search through
+      _decodeState();
 
+      // search through the state history for the closest 
+      // state object before or at the time
+      for (var i = 0; i < _diffArr.length; i++) {
+        if (_history[i + 1] && _history[i + 1].timestamp > time) {
+          break;
+        }
+      }
+      
+      // return the state we found, or the final one
+      return _history[i] || _history[_history.length - 1];
     },
 
     /**
