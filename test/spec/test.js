@@ -59,14 +59,14 @@
       //   decodedContent.should.equal(state.content);
       // });
 
-      it('for adding the initial string', function () {
+      it('for adding the initial string to the `content` key', function () {
         contentEncoder.push(state);
 
         decodedContent = contentDecoder.getState().state.content;
         decodedContent.should.equal(state.content);
       });
 
-      it('when adding text to the end', function () {
+      it('when adding text to the end to the `content` key', function () {
         state.content = state.content + ' ... that\'s all folks';
         contentEncoder.push(state);
         console.log('pushing', state);
@@ -75,7 +75,7 @@
         decodedContent.should.equal(state.content);
       });
 
-      it('when adding text to the middle', function () {
+      it('when adding text to the middle to the `content` key', function () {
         state.content = state.content.splice(8, 0, ' Oh, here we are ...');
         contentEncoder.push(state);
 
@@ -83,7 +83,7 @@
         decodedContent.should.equal(state.content);
       });
 
-      it('when removing text from the end', function () {
+      it('when removing text from the end to the `content` key', function () {
         state.content = state.content.slice(0, -21);
         contentEncoder.push(state);
 
@@ -91,8 +91,24 @@
         decodedContent.should.equal(state.content);
       });
 
-      it('when removing text from the middle', function () {
+      it('when removing text from the middle to the `content` key', function () {
         state.content = state.content.splice(8, 19, '');
+        contentEncoder.push(state);
+
+        decodedContent = contentDecoder.getState().state.content;
+        decodedContent.should.equal(state.content);
+      });
+
+      it('when adding a mouse position key', function () {
+        state.mouse = [152, 288];
+        contentEncoder.push(state);
+
+        decodedContent = contentDecoder.getState().state.content;
+        decodedContent.should.equal(state.content);
+      });
+
+      it('when changing a mouse position key', function () {
+        state.mouse = [155, 288];
         contentEncoder.push(state);
 
         decodedContent = contentDecoder.getState().state.content;
