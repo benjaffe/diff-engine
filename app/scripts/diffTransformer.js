@@ -14,8 +14,8 @@ app.diffEngine = (function() {
 
   var encoder = {
     /**
-    	 * Calculates the diff from the content and adds it to the diff list
-    	 * @param  {string} content - the content to be diffed
+    	 * Calculates the diff from the state and adds it to the diff list
+    	 * @param  {string} state - the state to be diffed
     	 */
     push: function(state) {
       var diff = _generateDiff(state);
@@ -34,42 +34,42 @@ app.diffEngine = (function() {
     },
 
     /**
-		 * Return the final state of the content
-		 * @return {object}  The state object after the diffs are decoded into content
+		 * Return the state after ALL diffs
+		 * @return {object}  The state object after the diffs are decoded
 		 */
     getState: function() {
-      return _decodeContent();
+      return _decodeState();
     },
 		
     /**
-		 * Get the state of the content at dif # num
+		 * Get the state at dif # num
 		 * @param  {integer} num - the number of the diff to be decoded
-		 * @return {string}        the decoded content
+		 * @return {string}        the decoded state
 		 */
     getStateAtIndex: function(num) {
       if (num > _diffArr.length - 1) {
         return null;
       }
 
-      return _decodeContent(num);
+      return _decodeState(num);
     },
 
     /**
-		 * Get the state of the content at a given time
+		 * Get the state at a given time
 		 * @param  {integer} time - ms from start to be decoded
-		 * @return {string}        the decoded content
+		 * @return {string}        the decoded state
 		 */
     getStateAtTime: function(time) {
 
     },
 
     /**
-     * Get a timeline of decoded content
-     * @return {array} timeline of decoded content
+     * Get a timeline of decoded state
+     * @return {array} timeline of decoded state
      */
     getStateTimeline: function() {
       if (_diffArr.length !== _history.length) {
-        _decodeContent();
+        _decodeState();
       }
       return _history;
     }
@@ -102,11 +102,11 @@ app.diffEngine = (function() {
   }
 
   /**
-	 * reconstruct a state timeline based on the diffs, and return a content object
-	 * @param  {[type]} _num [description]
-	 * @return {[type]}      [description]
+	 * reconstruct a state timeline based on the diffs, and return a state object
+	 * @param  {[number]} _num - optional index to decode and return (if omitted, returns the final state)
+	 * @return {[type]}      [state]
 	 */
-  function _decodeContent (_num) {
+  function _decodeState (_num) {
 		
     if (_num === undefined) {
       _num = _diffArr.length - 1;
@@ -131,7 +131,7 @@ app.diffEngine = (function() {
       // last string value or ''
       var stateStr = _history[_diffNum - 1] && JSON.stringify(_history[_diffNum - 1].state) || '{}';
 
-      // run through each diff and calculate contents
+      // run through each diff and calculate state
       _diff.diffOps.forEach(function(diffOp) {
         if (diffOp.added) {
           console.debug('ADDED ' + diffOp.value);
