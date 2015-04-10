@@ -130,7 +130,6 @@ app.diffEngine = (function() {
 
       // last string value or ''
       var stateStr = _history[_diffNum - 1] && JSON.stringify(_history[_diffNum - 1].state) || '{}';
-      console.log(_diffNum, _history[_diffNum - 1] && _history[_diffNum - 1].state);
 
       // run through each diff and calculate contents
       _diff.diffOps.forEach(function(diffOp) {
@@ -139,7 +138,7 @@ app.diffEngine = (function() {
           stateStr = stateStr.substr(0, i) + diffOp.value + stateStr.slice(i);
           i += diffOp.value.length;
         } else if (diffOp.removed) {
-          console.debug('REMOVED ' + diffOp.count);
+          console.debug('REMOVED ' + stateStr.substr(i, diffOp.count));
           stateStr = stateStr.substr(0, i) + stateStr.slice(i + diffOp.count);
         } else {
           i += diffOp.count;
@@ -161,6 +160,9 @@ app.diffEngine = (function() {
         timestampAbs: timestampAbs,
         index: _history.length
       });
+
+      console.log(_history[_diffNum] && _history[_diffNum].state, _history[_diffNum]);
+
     });
 		
     _diffAndHistoryOutOfSync = false;
