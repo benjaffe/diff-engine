@@ -21,6 +21,7 @@ app.diffEngine = (function() {
       var diff = _generateDiff(state);
       _diffArr.push(diff);
       _diffAndHistoryOutOfSync = true;
+      return _diffArr.length - 1;
     }
   };
 
