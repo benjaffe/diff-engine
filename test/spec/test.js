@@ -7,6 +7,35 @@
     return (this.slice(0, idx) + (s || '') + this.slice(idx + Math.abs(rem)));
   };
 
+  describe('Diff Engines should be distinct', function(){
+
+  	it('Engine prototype methods should be the same', function(){
+  		var a = window.diffEngine();
+			var b = window.diffEngine();
+			(a.getEncoder === b.getEncoder).should.equal(true);
+			(a.getDecoder === b.getDecoder).should.equal(true);
+  	});
+  	
+  	it('New Engines should be different', function(){
+			var a = window.diffEngine();
+			var b = window.diffEngine();
+			(a === b).should.equal(false);
+		});
+
+  	it('New Encoders should be different', function(){
+			var a = window.diffEngine();
+			var b = window.diffEngine();
+			(a.getEncoder() === b.getEncoder()).should.equal(false);
+  	});
+
+  	it('New Decoders should be different', function(){
+			var a = window.diffEngine();
+			var b = window.diffEngine();
+			(a.getDecoder() === b.getDecoder()).should.equal(false);
+  	});
+
+  });
+
   describe('Diff APIs', function () {
 		
     describe('should be symmetrical across all sorts of transformations', function () {
