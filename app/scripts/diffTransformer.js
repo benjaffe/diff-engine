@@ -72,7 +72,7 @@
       }
 
       if (_stateStr) {
-        _diff.diffOps = app.JsDiff.diffChars(_prevStateStr, _stateStr);
+        _diff.diffOps = window.JsDiff.diffChars(_prevStateStr, _stateStr);
       }
 
       _prevStateStr = _stateStr;

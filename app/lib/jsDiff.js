@@ -1,5 +1,3 @@
-var app = app || {};
-
 /* See LICENSE file for terms of use */
 
 /*
@@ -17,7 +15,6 @@ var app = app || {};
  * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927
  */
 (function(global, undefined) {
-  'use strict';
 
   var JsDiff = (function() {
     /*jshint maxparams: 5*/
@@ -563,4 +560,4 @@ var app = app || {};
   else if (typeof global.JsDiff === 'undefined') {
     global.JsDiff = JsDiff;
   }
-})(app);
+})(this);
