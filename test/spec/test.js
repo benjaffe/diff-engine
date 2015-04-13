@@ -11,8 +11,9 @@
 		
     describe('should be symmetrical', function () {
 
-      var stateEncoder = app.diffEngine.getEncoder();
-      var stateDecoder = app.diffEngine.getDecoder();
+    	var diffEngine = window.diffEngine();
+      var stateEncoder = diffEngine.getEncoder();
+      var stateDecoder = diffEngine.getDecoder();
       var state = {
       	// content: '<TextView\n    android:text=\"Hi there!\"\n    android:padding=\"20dp\"/>'
       	content: 'Bink'
