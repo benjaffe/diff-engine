@@ -9,8 +9,7 @@
 
   describe('Diff APIs', function () {
 		
-    describe('should be symmetrical', function () {
-
+    describe('should be symmetrical across all sorts of transformations', function () {
     	var diffEngine = window.diffEngine();
       var stateEncoder = diffEngine.getEncoder();
       var stateDecoder = diffEngine.getDecoder();
@@ -20,7 +19,7 @@
       };
       var decodedState, prevState, i;
 
-      it('for adding the initial string to the `content` key', function () {
+      it('when adding the initial string to the `content` key', function () {
         i = stateEncoder.push(state);
 
         decodedState = stateDecoder.getStateAtIndex(i);
@@ -35,7 +34,7 @@
         decodedState = stateDecoder.getStateAtIndex(i);
         prevState = stateDecoder.getStateAtIndex(i - 1);
         console.log('hi');
-        console.log(decodedState, prevState);
+        console.log(i, decodedState, prevState);
         decodedState.state.content.should.equal(state.content);
         decodedState.timestamp.should.be.above(prevState.timestamp);
       });
