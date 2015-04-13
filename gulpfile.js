@@ -4,19 +4,15 @@
 var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
 var browserSync = require('browser-sync');
+var uglify = require('gulp-uglify');
+var rename = require('gulp-rename');
+var header = require('gulp-header');
 var reload = browserSync.reload;
 
-gulp.task('styles', function () {
-  return gulp.src('app/styles/main.css')
-    .pipe($.sourcemaps.init())
-    .pipe($.postcss([
-      require('autoprefixer-core')({browsers: ['last 1 version']})
-    ]))
-    .pipe($.sourcemaps.write())
-    .pipe(gulp.dest('.tmp/styles'))
-    .pipe(reload({stream: true}));
-});
+// Clean the dist and temp directories
+gulp.task('clean', require('del').bind(null, ['.tmp', 'dist']));
 
+// Run JSHint
 gulp.task('jshint', function () {
   return gulp.src('app/scripts/**/*.js')
     .pipe(reload({stream: true, once: true}))
@@ -25,75 +21,7 @@ gulp.task('jshint', function () {
     .pipe($.if(!browserSync.active, $.jshint.reporter('fail')));
 });
 
-gulp.task('html', ['styles'], function () {
-  var assets = $.useref.assets({searchPath: ['.tmp', 'app', '.']});
-
-  return gulp.src('app/*.html')
-    .pipe(assets)
-    .pipe($.if('*.js', $.uglify()))
-    .pipe($.if('*.css', $.csso()))
-    .pipe(assets.restore())
-    .pipe($.useref())
-    .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
-    .pipe(gulp.dest('dist'));
-});
-
-gulp.task('images', function () {
-  return gulp.src('app/images/**/*')
-    .pipe($.cache($.imagemin({
-      progressive: true,
-      interlaced: true,
-      // don't remove IDs from SVGs, they are often used
-      // as hooks for embedding and styling
-      svgoPlugins: [{cleanupIDs: false}]
-    })))
-    .pipe(gulp.dest('dist/images'));
-});
-
-gulp.task('fonts', function () {
-  return gulp.src(require('main-bower-files')({
-    filter: '**/*.{eot,svg,ttf,woff,woff2}'
-  }).concat('app/fonts/**/*'))
-    .pipe(gulp.dest('.tmp/fonts'))
-    .pipe(gulp.dest('dist/fonts'));
-});
-
-gulp.task('extras', function () {
-  return gulp.src([
-    'app/*.*',
-    '!app/*.html'
-  ], {
-    dot: true
-  }).pipe(gulp.dest('dist'));
-});
-
-gulp.task('clean', require('del').bind(null, ['.tmp', 'dist']));
-
-gulp.task('serve', ['styles', 'fonts'], function () {
-  browserSync({
-    notify: false,
-    port: 9000,
-    server: {
-      baseDir: ['.tmp', 'app'],
-      routes: {
-        '/bower_components': 'bower_components'
-      }
-    }
-  });
-
-  // watch for changes
-  gulp.watch([
-    'app/*.html',
-    'app/scripts/**/*.js',
-    'app/images/**/*',
-    '.tmp/fonts/**/*'
-  ]).on('change', reload);
-
-  gulp.watch('app/styles/**/*.css', ['styles']);
-  gulp.watch('app/fonts/**/*', ['fonts']);
-  gulp.watch('bower.json', ['wiredep', 'fonts']);
-});
-
+// For running unit tests
 gulp.task('test', function () {
   browserSync({
     notify: false,
@@ -101,8 +29,8 @@ gulp.task('test', function () {
     server: {
       baseDir: ['test', '.tmp'],
       routes: {
-        '/scripts': 'app/scripts',
-        '/lib': 'app/lib'
+        '/src': 'src',
+        '/external': 'external'
       }
     }
   });
@@ -113,26 +41,34 @@ gulp.task('test', function () {
     'test/spec/**/*.js'
   ]).on('change', reload);
 
-  // gulp.watch('app/styles/**/*.css', ['styles']);
-  // gulp.watch('app/fonts/**/*', ['fonts']);
-  // gulp.watch('bower.json', ['wiredep', 'fonts']);
 });
 
-// inject bower components
-gulp.task('wiredep', function () {
-  var wiredep = require('wiredep').stream;
+// Build release versions of the plugin
+gulp.task('build', ['clean', 'jshint'], function () {
+  var pkg = require('./package.json');
+  var banner = ['/**',
+    ' * <%= pkg.name %> - <%= pkg.description %>',
+    ' * @version v<%= pkg.version %>',
+    ' * @license <%= pkg.license %>',
+    ' */',
+    '\n'].join('\n');
 
-  gulp.src('app/*.html')
-    .pipe(wiredep({
-      ignorePath: /^(\.\.\/)*\.\./
-    }))
-    .pipe(gulp.dest('app'));
+  gulp.src('src/*.js')
+    .pipe(uglify())
+    .pipe(rename('diffEngine.min.js'))
+    .pipe(header(banner, {pkg : pkg}))
+    .pipe(gulp.dest('./dist'));
+
+  return gulp.src('src/*.js')
+    .pipe(rename('diffEngine.js'))
+    .pipe(header(banner, {pkg : pkg}))
+    .pipe(gulp.dest('./dist'));
 });
 
-gulp.task('build', ['jshint', 'html', 'images', 'fonts', 'extras'], function () {
-  return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
-});
-
+// Default task
 gulp.task('default', ['clean'], function () {
+
+  // build the plugin
   gulp.start('build');
+
 });
