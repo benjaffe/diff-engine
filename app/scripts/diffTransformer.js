@@ -1,15 +1,8 @@
 /*!
- * jQuery JavaScript Library v2.1.3
- * http://jquery.com/
- *
- * Includes Sizzle.js
- * http://sizzlejs.com/
- *
- * Copyright 2005, 2014 jQuery Foundation, Inc. and other contributors
+ * Diff Engine
+ * 
  * Released under the MIT license
- * http://jquery.org/license
- *
- * Date: 2014-12-18T15:11Z
+ * 
  */
 
 (function( global, factory ) {
@@ -37,20 +30,20 @@
 // Pass this if window is not defined yet
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
-	var _diffArr = [];
-	var _prevStateStr = JSON.stringify({});
-	var _prevDate;
+  var _diffArr = [];
+  var _prevStateStr = JSON.stringify({});
+  var _prevDate;
 
-	var _history = [];
+  var _history = [];
 	
-	var _diffAndHistoryOutOfSync = true;
+  var _diffAndHistoryOutOfSync = true;
 
-	function Encoder() {
-		/**
-  	 * Calculates the diff from the state and adds it to the diff list
-  	 * @param  {string} state - the state to be diffed
-  	 */
-		this.push = function(state) {
+  function Encoder() {
+    /**
+      	 * Calculates the diff from the state and adds it to the diff list
+      	 * @param  {string} state - the state to be diffed
+      	 */
+    this.push = function(state) {
       var diff = _generateDiff(state);
       _diffArr.push(diff);
       _diffAndHistoryOutOfSync = true;
@@ -82,11 +75,9 @@
     	
       return _diff;
     }
-	}
+  }
 
-
-
-	function Decoder() {
+  function Decoder() {
 	  
     /**
 		 * Get the diff array
@@ -222,25 +213,19 @@
       return _history[_num];
     }
 
-	}
+  }
 
+  function DiffEngine () {
+    this.encoder = new Encoder();
+    this.decoder = new Decoder();
+  }
 
-	function DiffEngine () {
-	  this.encoder = new Encoder();
-	  this.decoder = new Decoder();
-	}
-
-	DiffEngine.prototype.getEncoder = function() {
-		return this.encoder;
-	};
-	DiffEngine.prototype.getDecoder = function() {
-		return this.decoder;
-	};
-
-
-
-
-  
+  DiffEngine.prototype.getEncoder = function() {
+    return this.encoder;
+  };
+  DiffEngine.prototype.getDecoder = function() {
+    return this.decoder;
+  };
 
   window.diffEngine = function() {
     return new DiffEngine();
