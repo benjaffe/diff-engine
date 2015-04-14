@@ -49,7 +49,8 @@
       var decodedState, prevState, i;
 
       it('when adding the initial string to the `content` key', function () {
-        i = stateEncoder.push(state);
+        var i = stateDecoder.getDiffs().length;
+        stateEncoder.push(state);
 
         decodedState = stateDecoder.getStateAtIndex(i);
         decodedState.state.content.should.equal(state.content);
@@ -58,7 +59,8 @@
 
       it('when adding text to the end to the `content` key', function () {
         state.content = state.content + ' ... that\'s all folks';
-        i = stateEncoder.push(state);
+        var i = stateDecoder.getDiffs().length;
+        stateEncoder.push(state);
         
         decodedState = stateDecoder.getStateAtIndex(i);
         prevState = stateDecoder.getStateAtIndex(i - 1);
@@ -70,7 +72,8 @@
 
       it('when adding text to the middle to the `content` key', function () {
         state.content = state.content.splice(8, 0, ' Oh, here we are ...');
-        i = stateEncoder.push(state);
+        var i = stateDecoder.getDiffs().length;
+        stateEncoder.push(state);
 
         decodedState = stateDecoder.getStateAtIndex(i);
         prevState = stateDecoder.getStateAtIndex(i - 1);
@@ -80,7 +83,8 @@
 
       it('when removing text from the end to the `content` key', function () {
         state.content = state.content.slice(0, -21);
-        i = stateEncoder.push(state);
+        var i = stateDecoder.getDiffs().length;
+        stateEncoder.push(state);
 
         decodedState = stateDecoder.getStateAtIndex(i);
         prevState = stateDecoder.getStateAtIndex(i - 1);
@@ -90,7 +94,8 @@
 
       it('when removing text from the middle to the `content` key', function () {
         state.content = state.content.splice(8, 19, '');
-        i = stateEncoder.push(state);
+        var i = stateDecoder.getDiffs().length;
+        stateEncoder.push(state);
 
         decodedState = stateDecoder.getStateAtIndex(i);
         prevState = stateDecoder.getStateAtIndex(i - 1);
@@ -100,7 +105,8 @@
 
       it('when adding a mouse position key', function () {
         state.mouse = [152, 288];
-        i = stateEncoder.push(state);
+        var i = stateDecoder.getDiffs().length;
+        stateEncoder.push(state);
 
         decodedState = stateDecoder.getStateAtIndex(i);
         prevState = stateDecoder.getStateAtIndex(i - 1);
@@ -110,7 +116,8 @@
 
       it('when changing a mouse position key', function () {
         state.mouse = [155, 288];
-        i = stateEncoder.push(state);
+        var i = stateDecoder.getDiffs().length;
+        stateEncoder.push(state);
 
         decodedState = stateDecoder.getStateAtIndex(i);
         prevState = stateDecoder.getStateAtIndex(i - 1);
