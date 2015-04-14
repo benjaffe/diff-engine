@@ -52,27 +52,40 @@
 
     /** Converts a state object into a diff object */
     function _generateDiff (_state) {
-      var _diff = {};
+      var _diff = {
+        ops: []
+      };
+      var _rawDiffOps;
       var _now = Date.now();
-      
+
       var _stateStr = JSON.stringify(_state);
-      
+
       if (_prevStateStr === '{}') {
-        console.log('FIRST');
-        _diff.timeAbsolute = _now;
+        // console.log('FIRST');
+        _diff.ta = _now;
       } else {
-        _diff.timeRelative = _now - _prevDate;
+        _diff.tr = _now - _prevDate;
       }
 
       if (_stateStr) {
-        _diff.diffOps = window.JsDiff.diffChars(_prevStateStr, _stateStr);
+        _rawDiffOps = window.JsDiff.diffChars(_prevStateStr, _stateStr);
       }
+
+      _rawDiffOps.forEach(function(diff) {
+        var d = {};
+        if (!diff.added && !diff.removed) {
+          d.$ = diff.count;
+        } else if (diff.removed) {
+          d.r = diff.count;
+        } else {
+          d.a = diff.value;
+        }
+        _diff.ops.push(d);
+      });
 
       _prevStateStr = _stateStr;
       _prevDate = _now;
 
-      console.log(_diff);
-    	
       return _diff;
     }
   }
@@ -162,7 +175,7 @@
       // reset stateHistory, calculate everything from scratch
       _history = [];
 
-      console.log('decoding');
+      // console.log('decoding');
   		
       // go through the diff array
       _diffArr.forEach(function(_diff, _diffNum) {
@@ -175,26 +188,26 @@
         var stateStr = _history[_diffNum - 1] && JSON.stringify(_history[_diffNum - 1].state) || '{}';
 
         // run through each diff and calculate state
-        _diff.diffOps.forEach(function(diffOp) {
-          if (diffOp.added) {
-            console.debug('ADDED ' + diffOp.value);
-            stateStr = stateStr.substr(0, i) + diffOp.value + stateStr.slice(i);
-            i += diffOp.value.length;
-          } else if (diffOp.removed) {
-            console.debug('REMOVED ' + stateStr.substr(i, diffOp.count));
-            stateStr = stateStr.substr(0, i) + stateStr.slice(i + diffOp.count);
+        _diff.ops.forEach(function(diffOp) {
+          if (diffOp.a) {
+            // console.debug('ADDED ' + diffOp.a);
+            stateStr = stateStr.substr(0, i) + diffOp.a + stateStr.slice(i);
+            i += diffOp.a.length;
+          } else if (diffOp.r) {
+            // console.debug('REMOVED ' + stateStr.substr(i, diffOp.r));
+            stateStr = stateStr.substr(0, i) + stateStr.slice(i + diffOp.r);
           } else {
-            i += diffOp.count;
+            i += diffOp.$;
           }
         });
 
         // set the timestamps
-        if (_diff.timeAbsolute) {
-          timestampAbs = _diff.timeAbsolute;
+        if (_diff.ta) {
+          timestampAbs = _diff.ta;
           timestamp = 0;
         } else {
-          timestampAbs = _history[_diffNum - 1].timestampAbs + _diff.timeRelative;
-          timestamp = _history[_diffNum - 1].timestamp + _diff.timeRelative;
+          timestampAbs = _history[_diffNum - 1].timestampAbs + _diff.tr;
+          timestamp = _history[_diffNum - 1].timestamp + _diff.tr;
         }
 
         _history.push({
@@ -204,12 +217,12 @@
           index: _history.length
         });
 
-        console.log(_history[_diffNum] && _history[_diffNum].state, _history[_diffNum]);
+        // console.log(_history[_diffNum] && _history[_diffNum].state, _history[_diffNum]);
 
       });
   		
       _diffAndHistoryOutOfSync = false;
-      console.log(_history[_num]);
+      // console.log(_history[_num]);
       return _history[_num];
     }
 
