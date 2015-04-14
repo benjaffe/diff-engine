@@ -65,15 +65,21 @@
         _rawDiffOps = window.JsDiff.diffChars(_prevStateStr, _stateStr);
       }
 
-      _rawDiffOps.forEach(function(diff) {
+      _rawDiffOps.forEach(function(diff, i, arr) {
         var d = {};
         if (!diff.added && !diff.removed) {
-          d.$ = diff.count;
+          d.z = diff.count;
         } else if (diff.removed) {
           d.r = diff.count;
         } else {
           d.a = diff.value;
         }
+
+        // skip the diff if it's the last one and has no effect
+        if (i === arr.length - 1) {
+          return false;
+        }
+
         _diff.ops.push(d);
       });
 
@@ -191,7 +197,7 @@
             // console.debug('REMOVED ' + stateStr.substr(i, diffOp.r));
             stateStr = stateStr.substr(0, i) + stateStr.slice(i + diffOp.r);
           } else {
-            i += diffOp.$;
+            i += diffOp.z;
           }
         });
 
