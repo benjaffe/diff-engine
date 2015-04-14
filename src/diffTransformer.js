@@ -8,18 +8,11 @@
 (function( global, factory ) {
 
 	if ( typeof module === "object" && typeof module.exports === "object" ) {
-		// For CommonJS and CommonJS-like environments where a proper `window`
-		// is present, execute the factory and get jQuery.
-		// For environments that do not have a `window` with a `document`
-		// (such as Node.js), expose a factory as module.exports.
-		// This accentuates the need for the creation of a real `window`.
-		// e.g. var jQuery = require("jquery")(window);
-		// See ticket #14549 for more info.
 		module.exports = global.document ?
 			factory( global, true ) :
 			function( w ) {
 				if ( !w.document ) {
-					throw new Error( "jQuery requires a window with a document" );
+					throw new Error( "Diff Engine requires a window with a document" );
 				}
 				return factory( w );
 			};
@@ -35,19 +28,20 @@
   var _prevDate;
 
   var _history = [];
-	
+  
   var _diffAndHistoryOutOfSync = true;
 
   function Encoder() {
     /**
-      	 * Calculates the diff from the state and adds it to the diff list
-      	 * @param  {string} state - the state to be diffed
-      	 */
+         * Calculates the diff from the state and adds it to the diff list
+         * @param  {string} state - the state to be diffed
+         * @return {object} the diff we added to the diff array
+         */
     this.push = function(state) {
       var diff = _generateDiff(state);
       _diffArr.push(diff);
       _diffAndHistoryOutOfSync = true;
-      return _diffArr.length - 1;
+      return diff;
     };
 
     /** Converts a state object into a diff object */
@@ -91,7 +85,7 @@
   }
 
   function Decoder() {
-	  
+
     /**
 		 * Get the diff array
 		 * @return {array} An array of diff objects
@@ -220,7 +214,7 @@
         // console.log(_history[_diffNum] && _history[_diffNum].state, _history[_diffNum]);
 
       });
-  		
+      
       _diffAndHistoryOutOfSync = false;
       // console.log(_history[_num]);
       return _history[_num];
