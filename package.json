@@ -1,7 +1,7 @@
 {
   "name": "Diff-Engine",
   "description": "A content to timestamped diff codec.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "private": true,
   "engines": {
