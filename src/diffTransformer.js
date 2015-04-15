@@ -23,24 +23,28 @@
 // Pass this if window is not defined yet
 }(typeof window !== "undefined" ? window : this, function( window, noGlobal ) {
 
-  var _diffArr = [];
-  var _prevStateStr = JSON.stringify({});
-  var _prevDate;
-
-  var _history = [];
-  
-  var _diffAndHistoryOutOfSync = true;
-
   function Encoder() {
+    var _diffArr = [];
+    var _prevStateStr = JSON.stringify({});
+    var _prevDate;
+
     /**
-         * Calculates the diff from the state and adds it to the diff list
-         * @param  {string} state - the state to be diffed
-         * @return {object} the diff we added to the diff array
-         */
+     * Get the diff array
+     * @return {array} An array of diff objects
+     */
+    this.getDiffs = function() {
+      return _diffArr;
+    };
+
+    /**
+     * Calculates the diff from the state and adds it to the diff list
+     * @param  {string} state - the state to be diffed
+     * @return {object} the diff we added to the diff array
+     */
     this.push = function(state) {
       var diff = _generateDiff(state);
       _diffArr.push(diff);
-      _diffAndHistoryOutOfSync = true;
+      // _diffAndHistoryOutOfSync = true;
       return diff;
     };
 
@@ -90,7 +94,19 @@
     }
   }
 
-  function Decoder() {
+  function Decoder(diffArr) {
+
+    var _history = [];
+    var _diffArr = diffArr;
+    var _diffAndHistoryOutOfSync = true;
+
+    /**
+     * Set the diff array
+     * @param  {array} diffArr - An array of diff objects
+     */
+    this.setDiffs = function(diffArr) {
+      _diffArr = diffArr;
+    };
 
     /**
 		 * Get the diff array
@@ -102,6 +118,7 @@
 
     /**
 		 * Return the state after ALL diffs
+     * @param  {integer} time - ms from start to be decoded
 		 * @return {object}  The state object after the diffs are decoded
 		 */
     this.getState = function(time) {
@@ -228,16 +245,17 @@
 
   }
 
-  function DiffEngine () {
-    this.encoder = new Encoder();
-    this.decoder = new Decoder();
-  }
+  function DiffEngine () {}
 
   DiffEngine.prototype.getEncoder = function() {
-    return this.encoder;
+    return new Encoder();
   };
-  DiffEngine.prototype.getDecoder = function() {
-    return this.decoder;
+  DiffEngine.prototype.getDecoder = function(diffs) {
+    if (!diffs || !diffs instanceof Array) {
+      throw new Error('diffs is not of type Array');
+    }
+
+    return new Decoder(diffs);
   };
 
   window.diffEngine = function() {

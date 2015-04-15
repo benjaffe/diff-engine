@@ -11,9 +11,8 @@
 
     it('Engine prototype methods should be the same', function() {
       var a = window.diffEngine();
-      var b = window.diffEngine();
-      (a.getEncoder === b.getEncoder).should.equal(true);
-      (a.getDecoder === b.getDecoder).should.equal(true);
+      (a.getEncoder === a.getEncoder).should.equal(true);
+      (a.getDecoder === a.getDecoder).should.equal(true);
     });
   	
     it('New Engines should be different', function() {
@@ -24,14 +23,12 @@
 
     it('New Encoders should be different', function() {
       var a = window.diffEngine();
-      var b = window.diffEngine();
-      (a.getEncoder() === b.getEncoder()).should.equal(false);
+      (a.getEncoder() === a.getEncoder()).should.equal(false);
     });
 
     it('New Decoders should be different', function() {
       var a = window.diffEngine();
-      var b = window.diffEngine();
-      (a.getDecoder() === b.getDecoder()).should.equal(false);
+      (a.getDecoder([]) === a.getDecoder([])).should.equal(false);
     });
 
   });
@@ -41,17 +38,23 @@
     describe('should be symmetrical across all sorts of transformations', function () {
       var diffEngine = window.diffEngine();
       var stateEncoder = diffEngine.getEncoder();
-      var stateDecoder = diffEngine.getDecoder();
       var state = {
         // content: '<TextView\n    android:text=\"Hi there!\"\n    android:padding=\"20dp\"/>'
         content: 'Bink'
       };
-      var decodedState, prevState, i;
+      var stateDecoder;
+      var decodedState;
+      var prevState;
+      var diffs;
+      var i;
 
       it('when adding the initial string to the `content` key', function () {
-        var i = stateDecoder.getDiffs().length;
         stateEncoder.push(state);
+        diffs = stateEncoder.getDiffs();
+        i = diffs.length - 1;
+        stateDecoder = diffEngine.getDecoder(diffs);
 
+        stateDecoder.setDiffs(diffs);
         decodedState = stateDecoder.getStateAtIndex(i);
         decodedState.state.content.should.equal(state.content);
         decodedState.timestamp.should.equal(0);
@@ -59,21 +62,23 @@
 
       it('when adding text to the end to the `content` key', function () {
         state.content = state.content + ' ... that\'s all folks';
-        var i = stateDecoder.getDiffs().length;
         stateEncoder.push(state);
+        diffs = stateEncoder.getDiffs();
+        i = diffs.length - 1;
         
         decodedState = stateDecoder.getStateAtIndex(i);
         prevState = stateDecoder.getStateAtIndex(i - 1);
-        console.log('hi');
-        console.log(i, decodedState, prevState);
         decodedState.state.content.should.equal(state.content);
         decodedState.timestamp.should.be.above(prevState.timestamp);
       });
 
       it('when adding text to the middle to the `content` key', function () {
         state.content = state.content.splice(8, 0, ' Oh, here we are ...');
-        var i = stateDecoder.getDiffs().length;
         stateEncoder.push(state);
+        diffs = stateEncoder.getDiffs();
+        i = diffs.length - 1;
+
+        stateDecoder.setDiffs(diffs);
 
         decodedState = stateDecoder.getStateAtIndex(i);
         prevState = stateDecoder.getStateAtIndex(i - 1);
@@ -83,8 +88,11 @@
 
       it('when removing text from the end to the `content` key', function () {
         state.content = state.content.slice(0, -21);
-        var i = stateDecoder.getDiffs().length;
         stateEncoder.push(state);
+        diffs = stateEncoder.getDiffs();
+        i = diffs.length - 1;
+
+        stateDecoder.setDiffs(diffs);
 
         decodedState = stateDecoder.getStateAtIndex(i);
         prevState = stateDecoder.getStateAtIndex(i - 1);
@@ -94,8 +102,11 @@
 
       it('when removing text from the middle to the `content` key', function () {
         state.content = state.content.splice(8, 19, '');
-        var i = stateDecoder.getDiffs().length;
         stateEncoder.push(state);
+        diffs = stateEncoder.getDiffs();
+        i = diffs.length - 1;
+
+        stateDecoder.setDiffs(diffs);
 
         decodedState = stateDecoder.getStateAtIndex(i);
         prevState = stateDecoder.getStateAtIndex(i - 1);
@@ -105,8 +116,11 @@
 
       it('when adding a mouse position key', function () {
         state.mouse = [152, 288];
-        var i = stateDecoder.getDiffs().length;
         stateEncoder.push(state);
+        diffs = stateEncoder.getDiffs();
+        i = diffs.length - 1;
+
+        stateDecoder.setDiffs(diffs);
 
         decodedState = stateDecoder.getStateAtIndex(i);
         prevState = stateDecoder.getStateAtIndex(i - 1);
@@ -116,8 +130,11 @@
 
       it('when changing a mouse position key', function () {
         state.mouse = [155, 288];
-        var i = stateDecoder.getDiffs().length;
         stateEncoder.push(state);
+        diffs = stateEncoder.getDiffs();
+        i = diffs.length - 1;
+
+        stateDecoder.setDiffs(diffs);
 
         decodedState = stateDecoder.getStateAtIndex(i);
         prevState = stateDecoder.getStateAtIndex(i - 1);
